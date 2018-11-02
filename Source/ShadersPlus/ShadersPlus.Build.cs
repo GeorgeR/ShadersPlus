@@ -1,5 +1,3 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
-
 using UnrealBuildTool;
 
 public class ShadersPlus : ModuleRules
@@ -7,49 +5,31 @@ public class ShadersPlus : ModuleRules
 	public ShadersPlus(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
-		PublicIncludePaths.AddRange(
-			new string[] {
-				"ShadersPlus/Public"
-				// ... add public include paths required here ...
-			}
-			);
-				
-		
-		PrivateIncludePaths.AddRange(
-			new string[] {
-				"ShadersPlus/Private",
-				// ... add other private include paths required here ...
-			}
-			);
-			
-		
+
+        if (Target.Version.MinorVersion <= 19)
+        {
+            PublicIncludePaths.AddRange(
+			    new string[] {
+				    "Public"
+			    });
+
+		    PrivateIncludePaths.AddRange(
+			    new string[] {
+				    "Private"
+			    });
+        }
+
 		PublicDependencyModuleNames.AddRange(
-			new string[]
-			{
-				"Core",
-				// ... add other public dependencies that you statically link with here ...
-			}
-			);
-			
-		
+			new string[] {
+				"Core"
+			});
+
 		PrivateDependencyModuleNames.AddRange(
-			new string[]
-			{
+			new string[] {
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore",
-				// ... add private dependencies that you statically link with here ...	
-			}
-			);
-		
-		
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-				// ... add any modules that your module loads dynamically here ...
-			}
-			);
+				"SlateCore"
+			});
 	}
 }
