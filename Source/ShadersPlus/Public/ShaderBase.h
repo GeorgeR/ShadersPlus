@@ -1,17 +1,17 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "GlobalShader.h"
-#include "TextureResource.h"
+#include "RHICommandList.h"
 
-class SHADERPLUS_API FShaderBase
+class SHADERSPLUS_API FShaderBase
     : public FGlobalShader
 {
 public:
+    FShaderBase();
     explicit FShaderBase(const ShaderMetaType::CompiledShaderInitializerType& Initializer);
 
-    template <typename TParameter>
-    virtual void BindParameter(FRHICommandList& RHICmdList, TParameter Parameter);
+    //template <typename TParameter>
+    //void SetParameter(FRHICommandList& RHICmdList, TParameter Parameter) { }
 
-    virtual void Unbind(FRHICommandList& RHICmdList) { }
+    virtual void Unbind(FRHICommandList& RHICmdList);
 };
