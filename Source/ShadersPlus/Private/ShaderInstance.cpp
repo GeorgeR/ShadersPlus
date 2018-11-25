@@ -1,6 +1,6 @@
 #include "ShaderInstance.h"
 
-FComputeShaderInstance::FComputeShaderInstance(const ERHIFeatureLevel::Type FeatureLevel)
+FShaderInstance::FShaderInstance(const ERHIFeatureLevel::Type FeatureLevel)
 {
     this->FeatureLevel = FeatureLevel;
 
@@ -8,9 +8,7 @@ FComputeShaderInstance::FComputeShaderInstance(const ERHIFeatureLevel::Type Feat
     bIsUnloading = false;
 }
 
-FComputeShaderInstance::~FComputeShaderInstance()
+FShaderInstance::~FShaderInstance()
 {
     bIsUnloading = true;
 }
-
-void FComputeShaderInstance::Dispatch(void* Data) { }
