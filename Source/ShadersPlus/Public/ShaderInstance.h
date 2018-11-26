@@ -30,7 +30,7 @@ public:
 };
 
 template <typename TParameters>
-class SHADERSPLUS_API TComputeShaderInstance
+class TComputeShaderInstance
     : public FShaderInstance
 {
 public:
