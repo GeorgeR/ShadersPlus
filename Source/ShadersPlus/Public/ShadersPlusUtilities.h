@@ -15,6 +15,16 @@ class UTexture;
 
 #define DECLARE_SET_PARAMETER(ParameterType, ParameterName) void Set##ParameterName(FRHICommandList& RHICmdList, ParameterType ParameterName)
 
+#define _IMPLEMENT_SET_PARAMETER(DeclarationType, ParameterType, ParameterName, ShaderType, Setter) void DeclarationType::Set##ParameterName(FRHICommandList& RHICmdList, ParameterType ParameterName)    \
+{   \
+    const auto ShaderType##ShaderRHI = Get##ShaderType##Shader();    \
+    if (this->##ParameterName.IsBound())    \
+        RHICmdList.##Setter(ShaderType##ShaderRHI, this->##ParameterName.GetBaseIndex(), ##ParameterName);     \
+}
+
+#define IMPLEMENT_SET_PARAMETER_SRV(DeclarationType, ParameterName, ShaderType) _IMPLEMENT_SET_PARAMETER(DeclarationType, FShaderResourceViewRHIRef, ParameterName, ShaderType, SetShaderResourceViewParameter)
+#define IMPLEMENT_SET_PARAMETER_UAV(DeclarationType, ParameterName, ShaderType) _IMPLEMENT_SET_PARAMETER(DeclarationType, FUnorderedAccessViewRHIRef, ParameterName, ShaderType, SetUAVParameter)
+
 class SHADERSPLUS_API FShadersPlusUtilities 
 {
 public:

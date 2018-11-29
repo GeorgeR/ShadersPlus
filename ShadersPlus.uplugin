@@ -14,10 +14,10 @@
 	"IsBetaVersion": false,
 	"Installed": false,
 	"Modules": [
-		{
-			"Name": "ShadersPlus",
-			"Type": "Developer",
-			"LoadingPhase": "PreDefault"
-		}
+    {
+      "Name": "ShadersPlus",
+      "Type": "Developer",
+      "LoadingPhase": "PostConfigInit"
+    }
 	]
 }

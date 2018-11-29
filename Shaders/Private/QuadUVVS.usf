@@ -1,0 +1,12 @@
+#include "/Engine/Public/Platform.ush"
+#include "/Engine/Private/Common.ush"
+
+void MainVS(
+	float4 Position : ATTRIBUTE0,
+	float2 UV : ATTRIBUTE1,
+	out float2 OutUV : TEXCOORD0,
+	out float4 OutPosition : SV_POSITION)
+{
+	OutPosition = Position;
+	OutUV = UV;
+}

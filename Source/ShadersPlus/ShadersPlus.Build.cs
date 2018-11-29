@@ -22,9 +22,10 @@ public class ShadersPlus : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[] {
 				"Core",
-			    "RenderCore",
-			    "ShaderCore",
-			    "RHI"
+			    "Projects",
+                "RenderCore",
+			    "RHI",
+                "ShaderCore",
             });
 
 		PrivateDependencyModuleNames.AddRange(
