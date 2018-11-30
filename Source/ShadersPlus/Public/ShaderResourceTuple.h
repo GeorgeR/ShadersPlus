@@ -1,5 +1,6 @@
 #pragma once
 
+// WIP/Redudant
 template <typename TResource>
 struct FShaderResourceTuple
 {

@@ -3,6 +3,7 @@
 #include "GlobalShader.h"
 #include "RHICommandList.h"
 
+// Probably depreciated
 class SHADERSPLUS_API FShaderBase
     : public FGlobalShader
 {

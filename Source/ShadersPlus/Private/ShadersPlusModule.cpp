@@ -9,8 +9,10 @@
 
 void FShadersPlusModule::StartupModule()
 {
+#if (ENGINE_MINOR_VERSION >= 21)
     auto ShaderDirectory = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("ShadersPlus"))->GetBaseDir(), TEXT("Shaders"));
     AddShaderSourceDirectoryMapping(TEXT("/Plugin/ShadersPlus"), ShaderDirectory);
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE
