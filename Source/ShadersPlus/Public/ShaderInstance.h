@@ -132,7 +132,7 @@ public:
             DrawToQuad,
             TDrawToQuadInstance*, DrawToQuadInstance, this,
             TParameters, Parameters, Parameters,
-            FTextureRenderTargetResource*, RenderTarget, RenderTarget->GetRenderTargetResource(),
+            FTextureRenderTargetResource*, RenderTarget, RenderTarget->GameThread_GetRenderTargetResource(),
             {
                 DrawToQuadInstance->DrawToQuad_RenderThread(RHICmdList, Parameters, RenderTarget);
             }
