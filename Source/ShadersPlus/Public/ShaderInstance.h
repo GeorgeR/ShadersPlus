@@ -134,13 +134,14 @@ public:
             TParameters, Parameters, Parameters,
             FTextureRenderTargetResource*, RenderTarget, RenderTarget->GameThread_GetRenderTargetResource(),
             {
-                DrawToQuadInstance->DrawToQuad_RenderThread(RHICmdList, Parameters, RenderTarget);
+                FRHICommandListImmediate& RHICmdListImmediate = GRHICommandList.GetImmediateCommandList();
+                DrawToQuadInstance->DrawToQuad_RenderThread(RHICmdListImmediate, Parameters, RenderTarget);
             }
         );
     }
 
 protected:
-    void DrawToQuad_RenderThread(FRHICommandList& RHICmdList, TParameters& Parameters, FTextureRenderTargetResource* RenderTarget)
+    void DrawToQuad_RenderThread(FRHICommandListImmediate& RHICmdList, TParameters& Parameters, FTextureRenderTargetResource* RenderTarget)
     {
         check(IsInRenderingThread());
 
@@ -174,14 +175,25 @@ protected:
         Vertices[2].UV = FVector2D(0, 1);
         Vertices[3].UV = FVector2D(1, 1);
 
+#if (ENGINE_MINOR_VERSION >= 21)
+        // Deprecated in 4.21?
         DrawPrimitiveUP(RHICmdList, PT_TriangleStrip, 2, Vertices, sizeof(Vertices[0]));
 
-        //RHICmdList.GenerateMips(RenderTarget->GetRenderTargetTexture());
-        
         RHICmdList.CopyToResolveTarget(
             RenderTarget->GetRenderTargetTexture(),
             RenderTarget->TextureRHI,
-            false, FResolveParams());
+            FResolveParams());
+#else
+        DrawPrimitiveUP(RHICmdList, PT_TriangleStrip, 2, Vertices, sizeof(Vertices[0]));
+
+        RHICmdList.CopyToResolveTarget(
+            RenderTarget->GetRenderTargetTexture(),
+            RenderTarget->TextureRHI,
+            false,
+            FResolveParams());
+#endif
+
+        //RHICmdList.GenerateMips(RenderTarget->GetRenderTargetTexture());
 
         OnTeardownPixelShader_RenderThread(RHICmdList, PixelShader);
 

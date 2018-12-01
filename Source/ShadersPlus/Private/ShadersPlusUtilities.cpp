@@ -2,6 +2,8 @@
 
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
+#include "Engine/TextureRenderTarget2D.h"
+
 #include <RenderingThread.h>
 #include "FileManager.h"
 #include "FileHelper.h"
@@ -9,6 +11,7 @@
 // TODO: Return false if Texture has no resource
 bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRHIRef& OutSRV)
 {
+    check(IsInGameThread());
     check(Texture);
 
     ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
@@ -28,6 +31,7 @@ bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRH
 void FShadersPlusUtilities::SaveScreenshot(UTexture2D* Texture, const FString& FilePath)
 {
     check(IsInGameThread());
+    check(Texture);
 
     auto TextureResource = (FTexture2DResource*)(Texture->Resource);
     auto TextureReference = TextureResource->GetTexture2DRHI();
@@ -35,8 +39,22 @@ void FShadersPlusUtilities::SaveScreenshot(UTexture2D* Texture, const FString& F
     SaveScreenshot(TextureReference, FilePath);
 }
 
+void FShadersPlusUtilities::SaveScreenshot(UTextureRenderTarget2D* Texture, const FString& FilePath)
+{
+    check(IsInGameThread());
+    check(Texture);
+
+    auto TextureResource = Texture->GameThread_GetRenderTargetResource();
+    auto TextureReference = TextureResource->GetRenderTargetTexture();
+
+    SaveScreenshot(TextureReference, FilePath);
+}
+
 void FShadersPlusUtilities::SaveScreenshot(FTexture2DRHIRef Texture, const FString& FilePath)
 {
+    check(IsInGameThread());
+    check(Texture);
+
     ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
         SaveScreenshot,
         FTexture2DRHIRef, Texture, Texture,

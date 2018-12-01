@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ShadersPlusUtilities.h"
+#include "ShadersPlusMacros.h"
 #include <GlobalShader.h>
 
 struct FTextureVertex

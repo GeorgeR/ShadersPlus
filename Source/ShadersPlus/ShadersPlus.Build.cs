@@ -22,7 +22,8 @@ public class ShadersPlus : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[] {
 				"Core",
-			    "Projects",
+			    "Engine",
+                "Projects",
                 "RenderCore",
 			    "RHI",
                 "ShaderCore",
@@ -31,7 +32,6 @@ public class ShadersPlus : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[] {
 				"CoreUObject",
-				"Engine",
 				"Slate",
 				"SlateCore"
 			});
