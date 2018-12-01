@@ -8,6 +8,10 @@
 #include "FileManager.h"
 #include "FileHelper.h"
 
+#include "IImageWrapperModule.h"
+#include "ModuleManager.h"
+#include "ImageWriteQueue/Public/ImagePixelData.h"
+
 // TODO: Return false if Texture has no resource
 bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRHIRef& OutSRV)
 {
@@ -50,6 +54,17 @@ void FShadersPlusUtilities::SaveScreenshot(UTextureRenderTarget2D* Texture, cons
     SaveScreenshot(TextureReference, FilePath);
 }
 
+// This doesn'tw ork, dont use it
+void FShadersPlusUtilities::SaveScreenshot(FShaderResourceViewRHIRef SRV, const FString& FilePath)
+{
+    check(IsInGameThread());
+    check(SRV);
+
+    auto Texture = (FRHITexture2D*)(SRV.GetReference());
+    
+    SaveScreenshot(Texture, FilePath);
+}
+
 void FShadersPlusUtilities::SaveScreenshot(FTexture2DRHIRef Texture, const FString& FilePath)
 {
     check(IsInGameThread());
@@ -71,17 +86,72 @@ void FShadersPlusUtilities::SaveScreenshot_RenderThread(FRHICommandListImmediate
 {
     check(IsInRenderingThread());
 
-    TArray<FColor> Bitmap;
-    FReadSurfaceDataFlags ReadDataFlags;
+    auto SourceRect = FIntRect(0, 0, Texture->GetSizeX(), Texture->GetSizeY());
+
+    FReadSurfaceDataFlags ReadDataFlags(RCM_MinMax);
     ReadDataFlags.SetLinearToGamma(false);
-    ReadDataFlags.SetOutputStencil(false);
-    ReadDataFlags.SetMip(0);
+    //ReadDataFlags.SetOutputStencil(false);
+    //ReadDataFlags.SetMip(0);
 
-    RHICmdList.ReadSurfaceData(Texture, FIntRect(0, 0, Texture->GetSizeX(), Texture->GetSizeY()), Bitmap, ReadDataFlags);
+    EImageFormat ImageFormat = EImageFormat::PNG;
+    auto ImageWrapper = GetImageWrapperForFormat(EImageFormat::EXR);
 
-    if (Bitmap.Num())
+    TUniquePtr<FImagePixelData> PixelData;
+
+    switch (Texture->GetFormat())
     {
-        uint32 ExtendXWithMSAA = Bitmap.Num() / Texture->GetSizeY();
-        FFileHelper::CreateBitmap(*FilePath, ExtendXWithMSAA, Texture->GetSizeY(), Bitmap.GetData());
+        case PF_FloatRGBA:
+        {
+            TUniquePtr<TImagePixelData<FFloat16Color>> BitmapData = MakeUnique<TImagePixelData<FFloat16Color>>(SourceRect.Size());
+            RHICmdList.ReadSurfaceFloatData(Texture, SourceRect, BitmapData->Pixels, ECubeFace::CubeFace_PosX, 0, 0);
+
+            PixelData = MoveTemp(BitmapData);
+
+            break;
+        }
+
+        case PF_A32B32G32R32F:
+        {
+            TUniquePtr<TImagePixelData<FLinearColor>> BitmapData = MakeUnique<TImagePixelData<FLinearColor>>(SourceRect.Size());
+            RHICmdList.ReadSurfaceData(Texture, SourceRect, BitmapData->Pixels, ReadDataFlags);
+
+            PixelData = MoveTemp(BitmapData);
+
+            break;
+        }
+
+        case PF_R8G8B8A8:
+        case PF_B8G8R8A8:
+        {
+            TUniquePtr<TImagePixelData<FColor>> BitmapData = MakeUnique<TImagePixelData<FColor>>(SourceRect.Size());
+            RHICmdList.ReadSurfaceData(Texture, SourceRect, BitmapData->Pixels, ReadDataFlags);
+
+            PixelData = MoveTemp(BitmapData);
+
+            break;
+        }
     }
+
+    if (PixelData.IsValid() && PixelData->IsDataWellFormed())
+    {
+        const void* RawPtr = nullptr;
+        int32 SizeInBytes = 0;
+
+        if (PixelData->GetRawData(RawPtr, SizeInBytes))
+        {
+            uint8 BitDepth = PixelData->GetBitDepth();
+            FIntPoint Size = PixelData->GetSize();
+            ERGBFormat PixelLayout = PixelData->GetPixelLayout();
+
+            ImageWrapper->SetRaw(RawPtr, SizeInBytes, Size.X, Size.Y, PixelLayout, BitDepth);
+        }
+
+        FFileHelper::SaveArrayToFile(ImageWrapper->GetCompressed(), *FilePath);
+    }
+}
+
+TSharedPtr<IImageWrapper> FShadersPlusUtilities::GetImageWrapperForFormat(EImageFormat Format)
+{
+    auto ImageWrapperModule = FModuleManager::GetModulePtr<IImageWrapperModule>(TEXT("ImageWrapper"));
+    return ImageWrapperModule->CreateImageWrapper(Format);
 }

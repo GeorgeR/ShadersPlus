@@ -23,6 +23,8 @@ public class ShadersPlus : ModuleRules
 			new string[] {
 				"Core",
 			    "Engine",
+                "ImageWrapper",
+                "ImageWriteQueue",
                 "Projects",
                 "RenderCore",
 			    "RHI",
@@ -35,5 +37,5 @@ public class ShadersPlus : ModuleRules
 				"Slate",
 				"SlateCore"
 			});
-	}
+    }
 }
