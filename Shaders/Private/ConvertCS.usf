@@ -1,0 +1,91 @@
+#ifndef INPUT_COMPONENTS
+#define INPUT_COMPONENTS 4
+#endif
+
+#ifndef OUTPUT_COMPONENTS
+#define OUTPUT_COMPONENTS 1
+#endif
+
+#if INPUT_COMPONENTS == 1
+#define INPUT_TYPE float
+#elif INPUT_COMPONENTS == 2
+#define INPUT_TYPE float2
+#elif INPUT_COMPONENTS == 3
+#define INPUT_TYPE float3
+#elif INPUT_COMPONENTS == 4
+#define INPUT_TYPE float4
+#endif
+
+#if OUTPUT_COMPONENTS == 1
+#define OUTPUT_TYPE float
+#elif OUTPUT_COMPONENTS == 2
+#define OUTPUT_TYPE float2
+#elif OUTPUT_COMPONENTS == 3
+#define OUTPUT_TYPE float3
+#elif OUTPUT_COMPONENTS == 4
+#define OUTPUT_TYPE float4
+#endif
+
+Texture2D<INPUT_TYPE> Input;
+RWTexture2D<OUTPUT_TYPE> Output;
+
+[numthreads(32, 32, 1)]
+void MainCS(uint3 GlobalThreadIndex : SV_DispatchThreadID)
+{
+    const int3 InputIndex = int3(GlobalThreadIndex.xy, 0);
+    const int2 OutputIndex = InputIndex.xy;
+
+#if INPUT_COMPONENTS == 1
+    #if OUTPUT_COMPONENTS == 1
+        Output[OutputIndex] = Input.Load(InputIndex);
+    #elif OUTPUT_COMPONENTS != 1
+        float InputValue = Input.Load(InputIndex);
+        #if OUTPUT_COMPONENTS == 2    
+            Output[OutputIndex] = float2(InputValue, InputValue);
+        #elif OUTPUT_COMPONENTS == 3
+            Output[OutputIndex] = float3(InputValue, InputValue, InputValue);
+        #elif OUTPUT_COMPONENTS == 4
+            Output[OutputIndex] = float4(InputValue, InputValue, InputValue, 1.0f);
+        #endif
+    #endif
+#elif INPUT_COMPONENTS == 2
+    #if OUTPUT_COMPONENTS == 2
+        Output[OutputIndex] = Input.Load(InputIndex);
+    #elif OUTPUT_COMPONENTS != 2
+        float2 InputValue = Input.Load(InputIndex);
+        #if OUTPUT_COMPONENTS == 1   
+            Output[OutputIndex] = InputValue.x;
+        #elif OUTPUT_COMPONENTS == 3
+            Output[OutputIndex] = float3(InputValue, 0.0f);
+        #elif OUTPUT_COMPONENTS == 4
+            Output[OutputIndex] = float4(InputValue, 0.0f, 1.0f);
+        #endif
+    #endif
+#elif INPUT_COMPONENTS == 3
+    #if OUTPUT_COMPONENTS == 3
+        Output[OutputIndex] = Input.Load(InputIndex);
+    #elif OUTPUT_COMPONENTS != 3
+        float3 InputValue = Input.Load(InputIndex);
+        #if OUTPUT_COMPONENTS == 1   
+            Output[OutputIndex] = InputValue.x;
+        #elif OUTPUT_COMPONENTS == 2
+            Output[OutputIndex] = InputValue.xy;
+        #elif OUTPUT_COMPONENTS == 4
+            Output[OutputIndex] = float4(InputValue, 1.0f);
+        #endif
+    #endif
+#elif INPUT_COMPONENTS == 4
+    #if OUTPUT_COMPONENTS == 4
+        Output[OutputIndex] = Input.Load(InputIndex);
+    #elif OUTPUT_COMPONENTS != 4
+        float4 InputValue = Input.Load(InputIndex);
+        #if OUTPUT_COMPONENTS == 1
+            Output[OutputIndex] = InputValue.x;
+        #elif OUTPUT_COMPONENTS == 2
+            Output[OutputIndex] = InputValue.xy;
+        #elif OUTPUT_COMPONENTS == 3
+            Output[OutputIndex] = InputValue.x;
+#endif
+    #endif
+#endif
+}

@@ -1,0 +1,34 @@
+#ifndef INPUT_COMPONENTS
+#define INPUT_COMPONENTS 4
+#endif
+
+#if INPUT_COMPONENTS == 1
+#define INPUT_TYPE float
+#elif INPUT_COMPONENTS == 2
+#define INPUT_TYPE float2
+#elif INPUT_COMPONENTS == 3
+#define INPUT_TYPE float3
+#elif INPUT_COMPONENTS == 4
+#define INPUT_TYPE float4
+#endif
+
+Texture2D<INPUT_TYPE> InputX;
+Texture2D<INPUT_TYPE> InputY;
+Texture2D<INPUT_TYPE> InputZ;
+Texture2D<INPUT_TYPE> InputW;
+
+RWTexture2D<float4> Output;
+
+[numthreads(32, 32, 1)]
+void MainCS(uint3 GlobalThreadIndex : SV_DispatchThreadID)
+{
+    const int3 InputIndex = int3(GlobalThreadIndex.xy, 0);
+    const int2 OutputIndex = InputIndex.xy;
+
+    float X = InputX.Load(InputIndex).x;
+    float Y = InputY.Load(InputIndex).x;
+    float Z = InputZ.Load(InputIndex).x;
+    float W = InputW.Load(InputIndex).x;
+    
+    Output[OutputIndex] = float4(X, Y, Z, W);
+}

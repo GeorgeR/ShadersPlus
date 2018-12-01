@@ -11,6 +11,9 @@
 #include "IImageWrapperModule.h"
 #include "ModuleManager.h"
 #include "ImageWriteQueue/Public/ImagePixelData.h"
+#include "ConvertCS.h"
+
+#define NUM_THREADS_PER_GROUP_DIMENSION 32
 
 // TODO: Return false if Texture has no resource
 bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRHIRef& OutSRV)
@@ -98,7 +101,34 @@ void FShadersPlusUtilities::SaveScreenshot_RenderThread(FRHICommandListImmediate
 
     TUniquePtr<FImagePixelData> PixelData;
 
-    switch (Texture->GetFormat())
+    auto Format = Texture->GetFormat();
+    switch (Format)
+    {
+        case PF_G32R32F:
+        {
+            FRHIResourceCreateInfo CreateInfo;
+            auto ConvertedOutput = RHICreateTexture2D(SourceRect.Width(), SourceRect.Height(), PF_A32B32G32R32F, 1, 1, TexCreate_UAV, CreateInfo);
+            auto ConvertedOutput_UAV = RHICreateUnorderedAccessView(ConvertedOutput);
+
+            auto Input_SRV = RHICreateShaderResourceView(Texture, 0);
+
+            TShaderMapRef<TConvertCS<2,4>> ComputeShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+            RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
+
+            ComputeShader->SetInput(RHICmdList, Input_SRV);
+            ComputeShader->SetOutput(RHICmdList, ConvertedOutput_UAV);
+
+            DispatchComputeShader(RHICmdList, *ComputeShader, SourceRect.Width() / NUM_THREADS_PER_GROUP_DIMENSION, SourceRect.Height() / NUM_THREADS_PER_GROUP_DIMENSION, 1);
+            ComputeShader->Unbind(RHICmdList);
+
+            Texture = ConvertedOutput;
+
+            break;
+        }
+    }
+    
+    Format = Texture->GetFormat();
+    switch (Format)
     {
         case PF_FloatRGBA:
         {
