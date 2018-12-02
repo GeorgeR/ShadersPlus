@@ -12,8 +12,11 @@
 #include "ModuleManager.h"
 #include "ImageWriteQueue/Public/ImagePixelData.h"
 #include "ConvertCS.h"
+#include "Async.h"
 
 #define NUM_THREADS_PER_GROUP_DIMENSION 32
+
+TUniquePtr<FImageWriter> FShadersPlusUtilities::ImageWriter = MakeUnique<FImageWriter>();
 
 // TODO: Return false if Texture has no resource
 bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRHIRef& OutSRV)
@@ -93,11 +96,8 @@ void FShadersPlusUtilities::SaveScreenshot_RenderThread(FRHICommandListImmediate
 
     FReadSurfaceDataFlags ReadDataFlags(RCM_MinMax);
     ReadDataFlags.SetLinearToGamma(false);
-    //ReadDataFlags.SetOutputStencil(false);
-    //ReadDataFlags.SetMip(0);
-
-    EImageFormat ImageFormat = EImageFormat::PNG;
-    auto ImageWrapper = GetImageWrapperForFormat(EImageFormat::EXR);
+    ReadDataFlags.SetOutputStencil(false);
+    ReadDataFlags.SetMip(0);
 
     TUniquePtr<FImagePixelData> PixelData;
 
@@ -164,24 +164,16 @@ void FShadersPlusUtilities::SaveScreenshot_RenderThread(FRHICommandListImmediate
 
     if (PixelData.IsValid() && PixelData->IsDataWellFormed())
     {
-        const void* RawPtr = nullptr;
-        int32 SizeInBytes = 0;
+        FImageSaveTask Task;
+        Task.Data = MoveTemp(PixelData);
+        Task.FilePath = FilePath;
 
-        if (PixelData->GetRawData(RawPtr, SizeInBytes))
-        {
-            uint8 BitDepth = PixelData->GetBitDepth();
-            FIntPoint Size = PixelData->GetSize();
-            ERGBFormat PixelLayout = PixelData->GetPixelLayout();
+        ImageWriter->Enqueue(MoveTemp(Task));
 
-            ImageWrapper->SetRaw(RawPtr, SizeInBytes, Size.X, Size.Y, PixelLayout, BitDepth);
-        }
-
-        FFileHelper::SaveArrayToFile(ImageWrapper->GetCompressed(), *FilePath);
+        //AsyncTask(ENamedThreads::GameThread, [Task]{ 
+        //    auto T = Task;
+        //    ImageWriter->Enqueue(MoveTemp(T));
+        //});
+        //OnImageSaveRequest.Broadcast(MoveTemp(Task));
     }
-}
-
-TSharedPtr<IImageWrapper> FShadersPlusUtilities::GetImageWrapperForFormat(EImageFormat Format)
-{
-    auto ImageWrapperModule = FModuleManager::GetModulePtr<IImageWrapperModule>(TEXT("ImageWrapper"));
-    return ImageWrapperModule->CreateImageWrapper(Format);
 }
