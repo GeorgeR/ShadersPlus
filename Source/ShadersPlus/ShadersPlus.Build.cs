@@ -24,14 +24,21 @@ public class ShadersPlus : ModuleRules
 				"Core",
 			    "Engine",
                 "ImageWrapper",
-                "ImageWriteQueue",
                 "Projects",
                 "RenderCore",
 			    "RHI",
                 "ShaderCore",
             });
 
-		PrivateDependencyModuleNames.AddRange(
+	    if (Target.Version.MinorVersion >= 21)
+	    {
+	        PublicDependencyModuleNames.AddRange(
+	            new string[] {
+	                "ImageWriteQueue"
+	            });
+        }
+
+        PrivateDependencyModuleNames.AddRange(
 			new string[] {
 				"CoreUObject",
 				"Slate",

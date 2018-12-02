@@ -15,6 +15,10 @@ void FShadersPlusModule::StartupModule()
 #endif
 }
 
+void FShadersPlusModule::ShutdownModule()
+{
+}
+
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FShadersPlusModule, ShadersPlus)
