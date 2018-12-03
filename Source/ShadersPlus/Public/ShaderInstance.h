@@ -179,19 +179,20 @@ protected:
         // Deprecated in 4.21?
         DrawPrimitiveUP(RHICmdList, PT_TriangleStrip, 2, Vertices, sizeof(Vertices[0]));
 
-        RHICmdList.CopyToResolveTarget(
-            RenderTarget->GetRenderTargetTexture(),
-            RenderTarget->TextureRHI,
-            FResolveParams());
+        //RHICmdList.CopyToResolveTarget(
+        //    RenderTarget->GetRenderTargetTexture(),
+        //    RenderTarget->TextureRHI,
+        //    FResolveParams());
 #else
         DrawPrimitiveUP(RHICmdList, PT_TriangleStrip, 2, Vertices, sizeof(Vertices[0]));
 
-        RHICmdList.CopyToResolveTarget(
-            RenderTarget->GetRenderTargetTexture(),
-            RenderTarget->TextureRHI,
-            false,
-            FResolveParams());
+        //RHICmdList.CopyToResolveTarget(
+        //    RenderTarget->GetRenderTargetTexture(),
+        //    RenderTarget->TextureRHI,
+        //    false,
+        //    FResolveParams());
 #endif
+        RHICmdList.GenerateMips(RenderTarget->TextureRHI);
 
         //RHICmdList.GenerateMips(RenderTarget->GetRenderTargetTexture());
 
@@ -200,6 +201,7 @@ protected:
         bIsExecuting = false;
     }
 
+    virtual void OnSetupVertexShader_RenderThread(FRHICommandList& RHICmdList, TShaderMapRef<FQuadUVVS> VertexShader, TParameters& Parameters) { }
     virtual void OnSetupPixelShader_RenderThread(FRHICommandList& RHICmdList, TShaderMapRef<TPixelShader> PixelShader, TParameters& Parameters) { }
     virtual void OnTeardownPixelShader_RenderThread(FRHICommandList& RHICmdList, TShaderMapRef<TPixelShader> PixelShader) { }
 };
