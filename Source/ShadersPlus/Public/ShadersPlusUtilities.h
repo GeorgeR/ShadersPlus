@@ -3,10 +3,12 @@
 #include <RHIResources.h>
 #include "RHICommandList.h"
 
-#include "IImageWrapper.h"
+#include "ImageWriter.h"
 
 class UTexture2D;
 class UTextureRenderTarget2D;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnImageSaveRequest, FImageSaveTask&&);
 
 class SHADERSPLUS_API FShadersPlusUtilities 
 {
@@ -17,9 +19,10 @@ public:
     static void SaveScreenshot(UTextureRenderTarget2D* Texture, const FString& FilePath);
     static void SaveScreenshot(FTexture2DRHIRef Texture, const FString& FilePath);
     static void SaveScreenshot(FShaderResourceViewRHIRef SRV, const FString& FilePath);
-  
+
     static void SaveScreenshot_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef Texture, const FString& FilePath);
 
 private:
-    static TSharedPtr<IImageWrapper> GetImageWrapperForFormat(EImageFormat Format);
+    static TUniquePtr<FImageWriter> ImageWriter;
+    static FOnImageSaveRequest OnImageSaveRequest;
 };
