@@ -19,7 +19,11 @@ public:
 
     virtual bool CanExecute();
 
+    FORCEINLINE void SetDebugLabel(const FName Label) { DebugLabel = Label; }
+
 protected:
+    TOptional<FName> DebugLabel;
+
     FThreadSafeBool bIsExecuting;
     FThreadSafeBool bIsUnloading;
     ERHIFeatureLevel::Type FeatureLevel;

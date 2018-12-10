@@ -20,3 +20,11 @@
 
 #define IMPLEMENT_SET_PARAMETER_SRV(DeclarationType, ParameterName, ShaderType) _IMPLEMENT_SET_PARAMETER(DeclarationType, FShaderResourceViewRHIRef, ParameterName, ShaderType, SetShaderResourceViewParameter)
 #define IMPLEMENT_SET_PARAMETER_UAV(DeclarationType, ParameterName, ShaderType) _IMPLEMENT_SET_PARAMETER(DeclarationType, FUnorderedAccessViewRHIRef, ParameterName, ShaderType, SetUAVParameter)
+
+#define BIND(ParameterName) ParameterName.Bind(Initializer.ParameterMap, TEXT(#ParameterName))
+
+#define _UNBIND(ParameterType, ParameterName, ShaderType, Setter) if(this->##ParameterName##.IsBound())  \
+    RHICmdList.##Setter(ShaderType##ShaderRHI, this->##ParameterName##.GetBaseIndex(), ##ParameterType())  \
+
+#define UNBIND_SRV(ParameterName, ShaderType) _UNBIND(FShaderResourceViewRHIParamRef, ParameterName, ShaderType, SetShaderResourceViewParameter)
+#define UNBIND_UAV(ParameterName, ShaderType) _UNBIND(FUnorderedAccessViewRHIRef, ParameterName, ShaderType, SetUAVParameter)

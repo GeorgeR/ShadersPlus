@@ -13,6 +13,7 @@
 #include "ImageWriteQueue/Public/ImagePixelData.h"
 #include "ConvertCS.h"
 #include "Async.h"
+#include "TextureResource.h"
 
 #define NUM_THREADS_PER_GROUP_DIMENSION 32
 
@@ -31,6 +32,44 @@ bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRH
         {
             auto RHIRef = StaticCast<FTexture2DResource*>(Texture->Resource)->GetTexture2DRHI();
             OutSRV = RHICreateShaderResourceView(RHIRef, 0);
+        });
+
+    FlushRenderingCommands();
+
+    return true;
+}
+
+bool FShadersPlusUtilities::CreateUAV(UTexture2D* Texture, FUnorderedAccessViewRHIRef& OutUAV)
+{
+    check(IsInGameThread());
+    check(Texture);
+
+    ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+        CreateUAV,
+        UTexture2D*, Texture, Texture,
+        FUnorderedAccessViewRHIRef&, OutUAV, OutUAV,
+        {
+            auto RHIRef = StaticCast<FTexture2DResource*>(Texture->Resource)->GetTexture2DRHI();
+            OutUAV = RHICreateUnorderedAccessView(RHIRef);
+        });
+
+    FlushRenderingCommands();
+
+    return true;
+}
+
+bool FShadersPlusUtilities::CreateUAV(UTextureRenderTarget2D* Texture, FUnorderedAccessViewRHIRef& OutUAV)
+{
+    check(IsInGameThread());
+    check(Texture);
+
+    ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+        CreateUAV,
+        FTextureRenderTargetResource*, Resource, Texture->GameThread_GetRenderTargetResource(),
+        FUnorderedAccessViewRHIRef&, OutUAV, OutUAV,
+        {
+            auto RHIRef = Resource->GetRenderTargetTexture();
+            OutUAV = RHICreateUnorderedAccessView(RHIRef);
         });
 
     FlushRenderingCommands();
