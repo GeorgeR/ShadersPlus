@@ -20,6 +20,7 @@
 
 #define IMPLEMENT_SET_PARAMETER_SRV(DeclarationType, ParameterName, ShaderType) _IMPLEMENT_SET_PARAMETER(DeclarationType, FShaderResourceViewRHIRef, ParameterName, ShaderType, SetShaderResourceViewParameter)
 #define IMPLEMENT_SET_PARAMETER_UAV(DeclarationType, ParameterName, ShaderType) _IMPLEMENT_SET_PARAMETER(DeclarationType, FUnorderedAccessViewRHIRef, ParameterName, ShaderType, SetUAVParameter)
+#define IMPLEMENT_SET_PARAMETER_SAMPLER(DeclarationType, ParameterName, ShaderType) _IMPLEMENT_SET_PARAMETER(DeclarationType, FSamplerStateRHIParamRef, ParameterName, ShaderType, SetShaderSampler)
 
 #define BIND(ParameterName) ParameterName.Bind(Initializer.ParameterMap, TEXT(#ParameterName))
 

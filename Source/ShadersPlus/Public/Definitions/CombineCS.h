@@ -48,73 +48,38 @@ template <int32 InputComponents>
 TCombineCS<InputComponents>::TCombineCS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
     : FGlobalShader(Initializer)
 {
-    InputX.Bind(Initializer.ParameterMap, TEXT("InputX"));
-    InputY.Bind(Initializer.ParameterMap, TEXT("InputY"));
-    InputZ.Bind(Initializer.ParameterMap, TEXT("InputZ"));
-    InputW.Bind(Initializer.ParameterMap, TEXT("InputW"));
-
-    Output.Bind(Initializer.ParameterMap, TEXT("Output"));
+    BIND(InputX);
+    BIND(InputY);
+    BIND(InputZ);
+    BIND(InputW);
+    BIND(Output);
 }
 
 template <int32 InputComponents>
-void TCombineCS<InputComponents>::SetInputX(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef InputX)
-{
-    const auto ComputeShaderRHI = GetComputeShader();
-    if (this->InputX.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->InputX.GetBaseIndex(), InputX);
-}
+IMPLEMENT_SET_PARAMETER_SRV(TCombineCS<InputComponents>, InputX, Compute)
 
 template <int32 InputComponents>
-void TCombineCS<InputComponents>::SetInputY(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef InputY)
-{
-    const auto ComputeShaderRHI = GetComputeShader();
-    if (this->InputY.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->InputY.GetBaseIndex(), InputY);
-}
+IMPLEMENT_SET_PARAMETER_SRV(TCombineCS<InputComponents>, InputY, Compute)
 
 template <int32 InputComponents>
-void TCombineCS<InputComponents>::SetInputZ(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef InputZ)
-{
-    const auto ComputeShaderRHI = GetComputeShader();
-    if (this->InputZ.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->InputZ.GetBaseIndex(), InputZ);
-}
+IMPLEMENT_SET_PARAMETER_SRV(TCombineCS<InputComponents>, InputZ, Compute)
 
 template <int32 InputComponents>
-void TCombineCS<InputComponents>::SetInputW(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef InputW)
-{
-    const auto ComputeShaderRHI = GetComputeShader();
-    if (this->InputW.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->InputWX.GetBaseIndex(), InputW);
-}
+IMPLEMENT_SET_PARAMETER_SRV(TCombineCS<InputComponents>, InputW, Compute)
 
 template <int32 InputComponents>
-void TCombineCS<InputComponents>::SetOutput(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef Output)
-{
-    const auto ComputeShaderRHI = GetComputeShader();
-    if (this->Output.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->Output.GetBaseIndex(), Output);
-}
+IMPLEMENT_SET_PARAMETER_UAV(TCombineCS<InputComponents>, Output, Compute)
 
 template <int32 InputComponents>
 void TCombineCS<InputComponents>::Unbind(FRHICommandList& RHICmdList)
 {
     const auto ComputeShaderRHI = GetComputeShader();
 
-    if (this->InputX.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->InputX.GetBaseIndex(), FShaderResourceViewRHIRef());
-
-    if (this->InputY.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->InputY.GetBaseIndex(), FShaderResourceViewRHIRef());
-
-    if (this->InputZ.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->InputZ.GetBaseIndex(), FShaderResourceViewRHIRef());
-
-    if (this->InputW.IsBound())
-        RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, this->InputW.GetBaseIndex(), FShaderResourceViewRHIRef());
-
-    if (this->Output.IsBound())
-        RHICmdList.SetUAVParameter(ComputeShaderRHI, this->Output.GetBaseIndex(), FUnorderedAccessViewRHIRef());
+    UNBIND_SRV(InputX, Compute);
+    UNBIND_SRV(InputY, Compute);
+    UNBIND_SRV(InputZ, Compute);
+    UNBIND_SRV(InputW, Compute);
+    UNBIND_UAV(Output, Compute);
 }
 
 template <int32 InputComponents>
