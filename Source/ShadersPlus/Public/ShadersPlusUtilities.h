@@ -13,6 +13,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnImageSaveRequest, FImageSaveTask&&);
 class SHADERSPLUS_API FShadersPlusUtilities 
 {
 public:
+    static FVertexBufferRHIRef CreateQuadVertexBuffer();
+
     static bool CreateSRV(UTexture2D* Texture, FShaderResourceViewRHIRef& OutSRV);
     static bool CreateUAV(UTexture2D* Texture, FUnorderedAccessViewRHIRef& OutUAV);
     static bool CreateUAV(UTextureRenderTarget2D* Texture, FUnorderedAccessViewRHIRef& OutUAV);

@@ -14,10 +14,31 @@
 #include "ConvertCS.h"
 #include "Async.h"
 #include "TextureResource.h"
+#include "QuadUVVS.h"
 
 #define NUM_THREADS_PER_GROUP_DIMENSION 32
 
 TUniquePtr<FImageWriter> FShadersPlusUtilities::ImageWriter = MakeUnique<FImageWriter>();
+
+FVertexBufferRHIRef FShadersPlusUtilities::CreateQuadVertexBuffer()
+{
+    FRHIResourceCreateInfo CreateInfo;
+    FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(sizeof(FTextureVertex) * 4, BUF_Volatile, CreateInfo);
+    void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, sizeof(FTextureVertex) * 4, RLM_WriteOnly);
+
+    FTextureVertex* Vertices = (FTextureVertex*)VoidPtr;
+    Vertices[0].Position = FVector4(-1.0f, 1.0f, 0, 1.0f);
+    Vertices[1].Position = FVector4(1.0f, 1.0f, 0, 1.0f);
+    Vertices[2].Position = FVector4(-1.0f, -1.0f, 0, 1.0f);
+    Vertices[3].Position = FVector4(1.0f, -1.0f, 0, 1.0f);
+    Vertices[0].UV = FVector2D(0, 0);
+    Vertices[1].UV = FVector2D(1, 0);
+    Vertices[2].UV = FVector2D(0, 1);
+    Vertices[3].UV = FVector2D(1, 1);
+    RHIUnlockVertexBuffer(VertexBufferRHI);
+
+    return VertexBufferRHI;
+}
 
 // TODO: Return false if Texture has no resource
 bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRHIRef& OutSRV)

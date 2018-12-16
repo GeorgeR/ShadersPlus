@@ -117,6 +117,19 @@ protected:
     UTextureRenderTarget2D* TargetTexture;
 };
 
+
+struct FDrawToQuadParameters
+{
+public:
+    bool bGenerateMips;
+
+    FDrawToQuadParameters()
+        : bGenerateMips(true)
+    {
+
+    }
+};
+
 template <typename TParameters, typename TPixelShader>
 class TDrawToQuadInstance
     : public FPixelShaderInstanceBase<FQuadUVVS, TPixelShader>
@@ -127,25 +140,32 @@ public:
 
     void DrawToQuad(TParameters& Parameters, UTextureRenderTarget2D* RenderTarget)
     {
+        FDrawToQuadParameters DrawToQuadParameters;
+        DrawToQuad(Parameters, RenderTarget, DrawToQuadParameters);
+    }
+
+    void DrawToQuad(TParameters& Parameters, UTextureRenderTarget2D* RenderTarget, FDrawToQuadParameters& DrawToQuadParameters)
+    {
         if (!CanExecute() || RenderTarget == nullptr)
             return;
 
         bIsExecuting = true;
 
-        ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
+        ENQUEUE_UNIQUE_RENDER_COMMAND_FOURPARAMETER(
             DrawToQuad,
             TDrawToQuadInstance*, DrawToQuadInstance, this,
+            FDrawToQuadParameters, DrawToQuadParameters, DrawToQuadParameters,
             TParameters, Parameters, Parameters,
             FTextureRenderTargetResource*, RenderTarget, RenderTarget->GameThread_GetRenderTargetResource(),
             {
                 FRHICommandListImmediate& RHICmdListImmediate = GRHICommandList.GetImmediateCommandList();
-                DrawToQuadInstance->DrawToQuad_RenderThread(RHICmdListImmediate, Parameters, RenderTarget);
+                DrawToQuadInstance->DrawToQuad_RenderThread(RHICmdListImmediate, Parameters, RenderTarget, DrawToQuadParameters);
             }
         );
     }
 
 protected:
-    void DrawToQuad_RenderThread(FRHICommandListImmediate& RHICmdList, TParameters& Parameters, FTextureRenderTargetResource* RenderTarget)
+    void DrawToQuad_RenderThread(FRHICommandListImmediate& RHICmdList, TParameters& Parameters, FTextureRenderTargetResource* RenderTarget, FDrawToQuadParameters& DrawToQuadParameters)
     {
         check(IsInRenderingThread());
 
@@ -169,6 +189,15 @@ protected:
 
         OnSetupPixelShader_RenderThread(RHICmdList, PixelShader, Parameters);
 
+#if (ENGINE_MINOR_VERSION >= 21)
+        RHICmdList.SetStreamSource(0, FShadersPlusUtilities::CreateQuadVertexBuffer(), 0);
+        RHICmdList.DrawPrimitive(PT_TriangleStrip, 0, 2, 1);
+
+        //RHICmdList.CopyToResolveTarget(
+        //    RenderTarget->GetRenderTargetTexture(),
+        //    RenderTarget->TextureRHI,
+        //    FResolveParams());
+#else
         FTextureVertex Vertices[4];
         Vertices[0].Position = FVector4(-1.0f, 1.0f, 0, 1.0f);
         Vertices[1].Position = FVector4(1.0f, 1.0f, 0, 1.0f);
@@ -179,15 +208,7 @@ protected:
         Vertices[2].UV = FVector2D(0, 1);
         Vertices[3].UV = FVector2D(1, 1);
 
-#if (ENGINE_MINOR_VERSION >= 21)
-        // Deprecated in 4.21?
-        DrawPrimitiveUP(RHICmdList, PT_TriangleStrip, 2, Vertices, sizeof(Vertices[0]));
-
-        //RHICmdList.CopyToResolveTarget(
-        //    RenderTarget->GetRenderTargetTexture(),
-        //    RenderTarget->TextureRHI,
-        //    FResolveParams());
-#else
+        // Deprecated in 4.21
         DrawPrimitiveUP(RHICmdList, PT_TriangleStrip, 2, Vertices, sizeof(Vertices[0]));
 
         //RHICmdList.CopyToResolveTarget(
@@ -196,7 +217,8 @@ protected:
         //    false,
         //    FResolveParams());
 #endif
-        RHICmdList.GenerateMips(RenderTarget->TextureRHI);
+        if(DrawToQuadParameters.bGenerateMips)
+            RHICmdList.GenerateMips(RenderTarget->TextureRHI);
 
         //RHICmdList.GenerateMips(RenderTarget->GetRenderTargetTexture());
 
