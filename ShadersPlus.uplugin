@@ -3,21 +3,21 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "ShadersPlus",
-	"Description": "",
-	"Category": "Other",
-	"CreatedBy": "",
+	"Description": "Extensions, utilities and base classes for shaders.",
+	"Category": "Rendering",
+	"CreatedBy": "George Rolfe",
 	"CreatedByURL": "",
-	"DocsURL": "",
+	"DocsURL": "https://github.com/georger/shadersplus",
 	"MarketplaceURL": "",
 	"SupportURL": "",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"Installed": false,
 	"Modules": [
-    {
-      "Name": "ShadersPlus",
-      "Type": "Developer",
-      "LoadingPhase": "PostConfigInit"
-    }
+		{
+			"Name": "ShadersPlus",
+			"Type": "Developer",
+			"LoadingPhase": "PostConfigInit"
+		}
 	]
 }
