@@ -27,10 +27,18 @@ public class ShadersPlus : ModuleRules
                 "Projects",
                 "RenderCore",
 			    "RHI",
-                "ShaderCore",
             });
 
-	    if (Target.Version.MinorVersion >= 21)
+        if (Target.Version.MinorVersion <= 21)
+        {
+            PublicDependencyModuleNames.AddRange(
+                new string[]
+                {
+                    "ShaderCore",
+                });
+        }
+
+        if (Target.Version.MinorVersion >= 21)
 	    {
 	        PublicDependencyModuleNames.AddRange(
 	            new string[] {
