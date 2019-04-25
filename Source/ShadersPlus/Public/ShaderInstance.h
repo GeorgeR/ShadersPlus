@@ -151,21 +151,68 @@ public:
 
         bIsExecuting = true;
 
-        ENQUEUE_UNIQUE_RENDER_COMMAND_FOURPARAMETER(
-            DrawToQuad,
-            TDrawToQuadInstance*, DrawToQuadInstance, this,
-            FDrawToQuadParameters, DrawToQuadParameters, DrawToQuadParameters,
-            TParameters, Parameters, Parameters,
-            FTextureRenderTargetResource*, RenderTarget, RenderTarget->GameThread_GetRenderTargetResource(),
-            {
-                FRHICommandListImmediate& RHICmdListImmediate = GRHICommandList.GetImmediateCommandList();
-                DrawToQuadInstance->DrawToQuad_RenderThread(RHICmdListImmediate, Parameters, RenderTarget, DrawToQuadParameters);
-            }
-        );
+#if (ENGINE_MINOR_VERSION < 22)
+		ENQUEUE_UNIQUE_RENDER_COMMAND_FOURPARAMETER(
+			DrawToQuad,
+			TDrawToQuadInstance*, DrawToQuadInstance, this,
+			FDrawToQuadParameters, DrawToQuadParameters, DrawToQuadParameters,
+			TParameters, Parameters, Parameters,
+			FTextureRenderTargetResource*, RenderTarget, RenderTarget->GameThread_GetRenderTargetResource(),
+			{
+				FRHICommandListImmediate& RHICmdListImmediate = GRHICommandList.GetImmediateCommandList();
+				DrawToQuadInstance->DrawToQuad_RenderThread_Pre_422(RHICmdListImmediate, Parameters, RenderTarget, DrawToQuadParameters);
+			}
+		);
+#else
+		ENQUEUE_RENDER_COMMAND(FDrawToQuad)(
+			[this, &DrawToQuadParameters, &Parameters, &RenderTarget](FRHICommandListImmediate& RHICmdList)
+			{
+				FRHICommandListImmediate& RHICmdListImmediate = GRHICommandList.GetImmediateCommandList();
+				this->DrawToQuad_RenderThread(RHICmdListImmediate, Parameters, RenderTarget->GetRenderTargetResource(), DrawToQuadParameters);
+			});
+#endif
     }
 
 protected:
-    void DrawToQuad_RenderThread(FRHICommandListImmediate& RHICmdList, TParameters& Parameters, FTextureRenderTargetResource* RenderTarget, FDrawToQuadParameters& DrawToQuadParameters)
+	void DrawToQuad_RenderThread(FRHICommandListImmediate& RHICmdList, TParameters& Parameters, FTextureRenderTargetResource* RenderTarget, FDrawToQuadParameters& DrawToQuadParameters)
+	{
+		check(IsInRenderingThread());
+
+		SCOPED_DRAW_EVENT(RHICmdList, DrawToQuad);
+
+		FRHIRenderPassInfo RenderPassInfo(RenderTarget->GetRenderTargetTexture(), ERenderTargetActions::Clear_Store);
+		RHICmdList.BeginRenderPass(RenderPassInfo, TEXT("FDrawToQuad"));
+
+		TShaderMapRef<FQuadUVVS> VertexShader(GetGlobalShaderMap(FeatureLevel));
+		TShaderMapRef<TPixelShader> PixelShader(GetGlobalShaderMap(FeatureLevel));
+
+		FGraphicsPipelineStateInitializer GraphicsPSOInitializer;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInitializer);
+		GraphicsPSOInitializer.DepthStencilState = TStaticDepthStencilState<false, CF_Always>::GetRHI();
+		GraphicsPSOInitializer.BlendState = TStaticBlendState<>::GetRHI();
+		GraphicsPSOInitializer.RasterizerState = TStaticRasterizerState<>::GetRHI();
+		GraphicsPSOInitializer.PrimitiveType = PT_TriangleStrip;
+		GraphicsPSOInitializer.BoundShaderState.VertexDeclarationRHI = GTextureVertexDeclaration.VertexDeclarationRHI;
+		GraphicsPSOInitializer.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
+		GraphicsPSOInitializer.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
+		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInitializer);
+
+		OnSetupPixelShader_RenderThread(RHICmdList, PixelShader, Parameters);
+
+		RHICmdList.SetStreamSource(0, FShadersPlusUtilities::CreateQuadVertexBuffer(), 0);
+		RHICmdList.DrawPrimitive(0, 2, 1);
+
+		if (DrawToQuadParameters.bGenerateMips)
+			RHICmdList.GenerateMips(RenderTarget->TextureRHI);
+
+		OnTeardownPixelShader_RenderThread(RHICmdList, PixelShader);
+
+		RHICmdList.EndRenderPass();
+
+		bIsExecuting = false;
+	}
+
+    void DrawToQuad_RenderThread_Pre_422(FRHICommandListImmediate& RHICmdList, TParameters& Parameters, FTextureRenderTargetResource* RenderTarget, FDrawToQuadParameters& DrawToQuadParameters)
     {
         check(IsInRenderingThread());
 
