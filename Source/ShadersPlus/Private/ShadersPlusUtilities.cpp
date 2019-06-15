@@ -40,7 +40,7 @@ FVertexBufferRHIRef FShadersPlusUtilities::CreateQuadVertexBuffer()
     return VertexBufferRHI;
 }
 
-// TODO: Return false if Texture has no resource
+// #todo Return false if Texture has no resource
 bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRHIRef& OutSRV)
 {
     check(IsInGameThread());
