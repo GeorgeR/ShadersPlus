@@ -46,14 +46,23 @@ bool FShadersPlusUtilities::CreateSRV(UTexture2D* Texture, FShaderResourceViewRH
     check(IsInGameThread());
     check(Texture);
 
-    ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-        CreateSRV,
-        UTexture2D*, Texture, Texture,
-        FShaderResourceViewRHIRef&, OutSRV, OutSRV,
-        {
-            auto RHIRef = StaticCast<FTexture2DResource*>(Texture->Resource)->GetTexture2DRHI();
-            OutSRV = RHICreateShaderResourceView(RHIRef, 0);
-        });
+#if ENGINE_MINOR_VERSION >= 22
+	ENQUEUE_RENDER_COMMAND(CreateSRV)(
+		[Texture, &OutSRV](FRHICommandListImmediate& RHICmdList)
+	{
+		const auto RHIRef = StaticCast<FTexture2DResource*>(Texture->Resource)->GetTexture2DRHI();
+		OutSRV = RHICreateShaderResourceView(RHIRef, 0);
+	});
+#else
+	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+		CreateSRV,
+		UTexture2D*, Texture, Texture,
+		FShaderResourceViewRHIRef&, OutSRV, OutSRV,
+		{
+			const auto RHIRef = StaticCast<FTexture2DResource*>(Texture->Resource)->GetTexture2DRHI();
+			OutSRV = RHICreateShaderResourceView(RHIRef, 0);
+		});
+#endif
 
     FlushRenderingCommands();
 
@@ -65,14 +74,23 @@ bool FShadersPlusUtilities::CreateUAV(UTexture2D* Texture, FUnorderedAccessViewR
     check(IsInGameThread());
     check(Texture);
 
-    ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-        CreateUAV,
-        UTexture2D*, Texture, Texture,
-        FUnorderedAccessViewRHIRef&, OutUAV, OutUAV,
-        {
-            auto RHIRef = StaticCast<FTexture2DResource*>(Texture->Resource)->GetTexture2DRHI();
-            OutUAV = RHICreateUnorderedAccessView(RHIRef);
-        });
+#if ENGINE_MINOR_VERSION >= 22
+	ENQUEUE_RENDER_COMMAND(CreateUAV)(
+		[Texture, &OutUAV](FRHICommandListImmediate& RHICmdList)
+	{
+		const auto RHIRef = StaticCast<FTexture2DResource*>(Texture->Resource)->GetTexture2DRHI();
+		OutUAV = RHICreateUnorderedAccessView(RHIRef);
+	});
+#else
+	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+		CreateUAV,
+		UTexture2D*, Texture, Texture,
+		FUnorderedAccessViewRHIRef&, OutUAV, OutUAV,
+		{
+			const auto RHIRef = StaticCast<FTexture2DResource*>(Texture->Resource)->GetTexture2DRHI();
+			OutUAV = RHICreateUnorderedAccessView(RHIRef);
+		});
+#endif
 
     FlushRenderingCommands();
 
@@ -84,14 +102,24 @@ bool FShadersPlusUtilities::CreateUAV(UTextureRenderTarget2D* Texture, FUnordere
     check(IsInGameThread());
     check(Texture);
 
-    ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-        CreateUAV,
-        FTextureRenderTargetResource*, Resource, Texture->GameThread_GetRenderTargetResource(),
-        FUnorderedAccessViewRHIRef&, OutUAV, OutUAV,
-        {
-            auto RHIRef = Resource->GetRenderTargetTexture();
-            OutUAV = RHICreateUnorderedAccessView(RHIRef);
-        });
+#if ENGINE_MINOR_VERSION >= 22
+	auto Resource = Texture->GameThread_GetRenderTargetResource();
+	ENQUEUE_RENDER_COMMAND(CreateUAV)(
+		[Resource, &OutUAV](FRHICommandListImmediate& RHICmdList)
+	{
+		const auto RHIRef = Resource->GetRenderTargetTexture();
+		OutUAV = RHICreateUnorderedAccessView(RHIRef);
+	});
+#else
+	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+		CreateUAV,
+		FTextureRenderTargetResource*, Resource, Texture->GameThread_GetRenderTargetResource(),
+		FUnorderedAccessViewRHIRef&, OutUAV, OutUAV,
+		{
+			const auto RHIRef = Resource->GetRenderTargetTexture();
+			OutUAV = RHICreateUnorderedAccessView(RHIRef);
+		});
+#endif
 
     FlushRenderingCommands();
 
@@ -136,14 +164,23 @@ void FShadersPlusUtilities::SaveScreenshot(FTexture2DRHIRef Texture, const FStri
     check(IsInGameThread());
     check(Texture);
 
-    ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-        SaveScreenshot,
-        FTexture2DRHIRef, Texture, Texture,
-        const FString&, FilePath, FilePath,
-        {
-            FShadersPlusUtilities::SaveScreenshot_RenderThread(RHICmdList, Texture, FilePath);
-        }
-    );
+#if ENGINE_MINOR_VERSION >= 22
+	ENQUEUE_RENDER_COMMAND(SaveScreenshot)(
+		[Texture, FilePath](FRHICommandListImmediate& RHICmdList)
+	{
+		FShadersPlusUtilities::SaveScreenshot_RenderThread(RHICmdList, Texture, FilePath);
+	});
+#else
+	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+		SaveScreenshot,
+		FTexture2DRHIRef, Texture, Texture,
+		const FString&, FilePath, FilePath,
+		{
+			FShadersPlusUtilities::SaveScreenshot_RenderThread(RHICmdList, Texture, FilePath);
+		}
+	);
+#endif
+
 
     FlushRenderingCommands();
 }
