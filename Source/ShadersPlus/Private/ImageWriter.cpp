@@ -1,8 +1,9 @@
 #include "ImageWriter.h"
-#include "ScopeLock.h"
-#include "Async.h"
-#include "FileHelper.h"
-#include "ModuleManager.h"
+
+#include "Misc/ScopeLock.h"
+#include "Async/Async.h"
+#include "Misc/FileHelper.h"
+#include "Modules/ModuleManager.h"
 #include "IImageWrapperModule.h"
 
 void FImageWriter::Enqueue(FImageSaveTask&& Task)
@@ -16,7 +17,7 @@ void FImageWriter::Enqueue(FImageSaveTask&& Task)
 
 void FImageWriter::TryWrite()
 {
-    FScopeLock WriteLock(&WriteLock);
+    FScopeLock Lock(&WriteLock);
 
     if (Tasks.IsEmpty())
         return;

@@ -1,4 +1,4 @@
-#include "QuadUVVS.h"
+#include "Definitions/QuadUVVS.h"
 
 TGlobalResource<FTextureVertexDeclaration> GTextureVertexDeclaration;
 

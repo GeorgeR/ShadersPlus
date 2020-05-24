@@ -3,9 +3,9 @@
 #include "CoreMinimal.h"
 
 #include "ImagePixelData.h"
-#include "CriticalSection.h"
-#include "Queue.h"
-#include "Array.h"
+#include "HAL/CriticalSection.h"
+#include "Containers/Queue.h"
+#include "Containers/Array.h"
 
 struct FImageSaveTask
 {

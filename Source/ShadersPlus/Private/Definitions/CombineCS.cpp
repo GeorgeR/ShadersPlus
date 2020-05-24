@@ -1,4 +1,4 @@
-#include "CombineCS.h"
+#include "Definitions/CombineCS.h"
 
 FCombineCS::FCombineCS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
     : FGlobalShader(Initializer)

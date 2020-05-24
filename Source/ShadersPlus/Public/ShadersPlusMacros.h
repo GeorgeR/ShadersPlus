@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Launch/Resources/Version.h"
+
 #define SHOULD_CACHE(Condition) static bool ShouldCache(EShaderPlatform Platform) { return Condition; }
 #define SHOULD_CACHE_WITH_FEATURE_LEVEL(FeatureLevel) SHOULD_CACHE(IsFeatureLevelSupported(Platform, FeatureLevel))
 
@@ -30,7 +32,15 @@
 #define BIND(ParameterName) ParameterName.Bind(Initializer.ParameterMap, TEXT(#ParameterName))
 
 #define _UNBIND(ParameterType, ParameterName, ShaderType, Setter) if(this->##ParameterName##.IsBound())  \
-    RHICmdList.##Setter(ShaderType##ShaderRHI, this->##ParameterName##.GetBaseIndex(), ##ParameterType())  \
+    RHICmdList.##Setter(ShaderType##ShaderRHI, this->##ParameterName##.GetBaseIndex(), ##ParameterType())
 
+#define _UNBIND_PTR(ParameterType, ParameterName, ShaderType, Setter) if(this->##ParameterName##.IsBound())  \
+    RHICmdList.##Setter(ShaderType##ShaderRHI, this->##ParameterName##.GetBaseIndex(), nullptr)
+
+#if ENGINE_MINOR_VERSION >= 23
+#define UNBIND_SRV(ParameterName, ShaderType) _UNBIND_PTR(FRHIShaderResourceView*, ParameterName, ShaderType, SetShaderResourceViewParameter)
+#else
 #define UNBIND_SRV(ParameterName, ShaderType) _UNBIND(FShaderResourceViewRHIParamRef, ParameterName, ShaderType, SetShaderResourceViewParameter)
+#endif
+
 #define UNBIND_UAV(ParameterName, ShaderType) _UNBIND(FUnorderedAccessViewRHIRef, ParameterName, ShaderType, SetUAVParameter)

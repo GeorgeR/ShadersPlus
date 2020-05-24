@@ -15,7 +15,11 @@ public:
     FConvertCS() = default;
     explicit FConvertCS(const ShaderMetaType::CompiledShaderInitializerType& Initializer);
 
+#if ENGINE_MINOR_VERSION >= 23
     DECLARE_SET_PARAMETER(FShaderResourceViewRHIRef, Input);
+#else
+	DECLARE_SET_PARAMETER(FShaderResourceViewRHIRef, Input);
+#endif
     DECLARE_SET_PARAMETER(FUnorderedAccessViewRHIRef, Output);
 
     void Unbind(FRHICommandList& RHICmdList);

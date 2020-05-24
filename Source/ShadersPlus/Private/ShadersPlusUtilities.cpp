@@ -4,17 +4,17 @@
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 
-#include <RenderingThread.h>
-#include "FileManager.h"
-#include "FileHelper.h"
+#include "RenderingThread.h"
+#include "HAL/FileManager.h"
+#include "Misc/FileHelper.h"
 
 #include "IImageWrapperModule.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 #include "ImageWriteQueue/Public/ImagePixelData.h"
-#include "ConvertCS.h"
-#include "Async.h"
+#include "Definitions/ConvertCS.h"
+#include "Async/Async.h"
 #include "TextureResource.h"
-#include "QuadUVVS.h"
+#include "Definitions/QuadUVVS.h"
 
 #define NUM_THREADS_PER_GROUP_DIMENSION 32
 

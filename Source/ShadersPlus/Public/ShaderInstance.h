@@ -3,11 +3,11 @@
 #include "GlobalShader.h"
 #include "UniformBuffer.h"
 #include "RHICommandList.h"
-#include "ThreadSafeBool.h"
+#include "HAL/ThreadSafeBool.h"
 #include "RHIStaticStates.h"
 #include "PipelineStateCache.h"
 
-#include "QuadUVVS.h"
+#include "Definitions/QuadUVVS.h"
 
 class UTextureRenderTarget2D;
 

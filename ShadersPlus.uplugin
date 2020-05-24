@@ -16,7 +16,7 @@
 	"Modules": [
 		{
 			"Name": "ShadersPlus",
-			"Type": "Developer",
+			"Type": "Runtime",
 			"LoadingPhase": "PostConfigInit"
 		}
 	]
