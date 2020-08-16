@@ -185,6 +185,8 @@ void FShadersPlusUtilities::SaveScreenshot(FTexture2DRHIRef Texture, const FStri
     FlushRenderingCommands();
 }
 
+// @note: this is lifted completely from Engine/Source/Runtime/ImageWriteQueue/Private/ImageWriteBlueprintLibrary.cpp
+// need to check if it's actually needed here
 void FShadersPlusUtilities::SaveScreenshot_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef Texture, const FString& FilePath)
 {
     check(IsInRenderingThread());
@@ -204,18 +206,18 @@ void FShadersPlusUtilities::SaveScreenshot_RenderThread(FRHICommandListImmediate
         case PF_G32R32F:
         {
             FRHIResourceCreateInfo CreateInfo;
-            auto ConvertedOutput = RHICreateTexture2D(SourceRect.Width(), SourceRect.Height(), PF_A32B32G32R32F, 1, 1, TexCreate_UAV, CreateInfo);
-            auto ConvertedOutput_UAV = RHICreateUnorderedAccessView(ConvertedOutput);
+            const auto ConvertedOutput = RHICreateTexture2D(SourceRect.Width(), SourceRect.Height(), PF_A32B32G32R32F, 1, 1, TexCreate_UAV, CreateInfo);
+            const auto ConvertedOutput_UAV = RHICreateUnorderedAccessView(ConvertedOutput);
 
-            auto Input_SRV = RHICreateShaderResourceView(Texture, 0);
+            const auto Input_SRV = RHICreateShaderResourceView(Texture, 0);
 
-            TShaderMapRef<TConvertCS<2,4>> ComputeShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
-            RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
+            const TShaderMapRef<TConvertCS<2,4>> ComputeShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+            RHICmdList.SetComputeShader(ComputeShader.GetComputeShader());
 
             ComputeShader->SetInput(RHICmdList, Input_SRV);
             ComputeShader->SetOutput(RHICmdList, ConvertedOutput_UAV);
 
-            DispatchComputeShader(RHICmdList, *ComputeShader, SourceRect.Width() / NUM_THREADS_PER_GROUP_DIMENSION, SourceRect.Height() / NUM_THREADS_PER_GROUP_DIMENSION, 1);
+            DispatchComputeShader(RHICmdList, ComputeShader, SourceRect.Width() / NUM_THREADS_PER_GROUP_DIMENSION, SourceRect.Height() / NUM_THREADS_PER_GROUP_DIMENSION, 1);
             ComputeShader->Unbind(RHICmdList);
 
             Texture = ConvertedOutput;
@@ -229,20 +231,22 @@ void FShadersPlusUtilities::SaveScreenshot_RenderThread(FRHICommandListImmediate
     {
         case PF_FloatRGBA:
         {
-            TUniquePtr<TImagePixelData<FFloat16Color>> BitmapData = MakeUnique<TImagePixelData<FFloat16Color>>(SourceRect.Size());
-            RHICmdList.ReadSurfaceFloatData(Texture, SourceRect, BitmapData->Pixels, ECubeFace::CubeFace_PosX, 0, 0);
+			TArray<FFloat16Color> RawPixels;
+			RawPixels.SetNum(SourceRect.Width() * SourceRect.Height());
+			RHICmdList.ReadSurfaceFloatData(Texture, SourceRect, RawPixels, ECubeFace::CubeFace_PosX, 0, 0);
 
-            PixelData = MoveTemp(BitmapData);
+            PixelData = MakeUnique<TImagePixelData<FFloat16Color>>(SourceRect.Size(), TArray64<FFloat16Color>(MoveTemp(RawPixels)));
 
             break;
         }
 
         case PF_A32B32G32R32F:
         {
-            TUniquePtr<TImagePixelData<FLinearColor>> BitmapData = MakeUnique<TImagePixelData<FLinearColor>>(SourceRect.Size());
-            RHICmdList.ReadSurfaceData(Texture, SourceRect, BitmapData->Pixels, ReadDataFlags);
+			TArray<FLinearColor> RawPixels;
+			RawPixels.SetNum(SourceRect.Width() * SourceRect.Height());
+			RHICmdList.ReadSurfaceData(Texture, SourceRect, RawPixels, ReadDataFlags);
 
-            PixelData = MoveTemp(BitmapData);
+            PixelData = MakeUnique<TImagePixelData<FLinearColor>>(SourceRect.Size(), TArray64<FLinearColor>(MoveTemp(RawPixels)));
 
             break;
         }
@@ -250,10 +254,11 @@ void FShadersPlusUtilities::SaveScreenshot_RenderThread(FRHICommandListImmediate
         case PF_R8G8B8A8:
         case PF_B8G8R8A8:
         {
-            TUniquePtr<TImagePixelData<FColor>> BitmapData = MakeUnique<TImagePixelData<FColor>>(SourceRect.Size());
-            RHICmdList.ReadSurfaceData(Texture, SourceRect, BitmapData->Pixels, ReadDataFlags);
+			TArray<FColor> RawPixels;
+			RawPixels.SetNum(SourceRect.Width() * SourceRect.Height());
+			RHICmdList.ReadSurfaceData(Texture, SourceRect, RawPixels, ReadDataFlags);
 
-            PixelData = MoveTemp(BitmapData);
+			PixelData = MakeUnique<TImagePixelData<FColor>>(SourceRect.Size(), TArray64<FColor>(MoveTemp(RawPixels)));
 
             break;
         }

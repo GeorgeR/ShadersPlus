@@ -183,8 +183,8 @@ protected:
 		FRHIRenderPassInfo RenderPassInfo(RenderTarget->GetRenderTargetTexture(), ERenderTargetActions::Clear_Store);
 		RHICmdList.BeginRenderPass(RenderPassInfo, TEXT("FDrawToQuad"));
 
-		TShaderMapRef<FQuadUVVS> VertexShader(GetGlobalShaderMap(FeatureLevel));
-		TShaderMapRef<TPixelShader> PixelShader(GetGlobalShaderMap(FeatureLevel));
+		TShaderMapRef<FQuadUVVS> VertexShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+		TShaderMapRef<TPixelShader> PixelShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 
 		FGraphicsPipelineStateInitializer GraphicsPSOInitializer;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInitializer);
@@ -193,8 +193,8 @@ protected:
 		GraphicsPSOInitializer.RasterizerState = TStaticRasterizerState<>::GetRHI();
 		GraphicsPSOInitializer.PrimitiveType = PT_TriangleStrip;
 		GraphicsPSOInitializer.BoundShaderState.VertexDeclarationRHI = GTextureVertexDeclaration.VertexDeclarationRHI;
-		GraphicsPSOInitializer.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
-		GraphicsPSOInitializer.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
+		GraphicsPSOInitializer.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+		GraphicsPSOInitializer.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInitializer);
 
 		OnSetupPixelShader_RenderThread(RHICmdList, PixelShader, Parameters);

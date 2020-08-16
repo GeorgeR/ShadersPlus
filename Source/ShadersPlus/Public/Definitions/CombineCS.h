@@ -23,15 +23,15 @@ public:
 
     void Unbind(FRHICommandList& RHICmdList);
 
-    virtual bool Serialize(FArchive& Ar) override;
+    //virtual bool Serialize(FArchive& Ar) override;
 
 private:
-    FShaderResourceParameter InputX;
-    FShaderResourceParameter InputY;
-    FShaderResourceParameter InputZ;
-    FShaderResourceParameter InputW;
+	LAYOUT_FIELD(FShaderResourceParameter, InputX)
+	LAYOUT_FIELD(FShaderResourceParameter, InputY)
+	LAYOUT_FIELD(FShaderResourceParameter, InputZ)
+	LAYOUT_FIELD(FShaderResourceParameter, InputW)
 
-    FShaderResourceParameter Output;
+	LAYOUT_FIELD(FShaderResourceParameter, Output)
 };
 
 template <int32 InputComponents>

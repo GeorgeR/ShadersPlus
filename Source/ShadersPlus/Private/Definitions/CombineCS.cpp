@@ -18,7 +18,8 @@ IMPLEMENT_SET_PARAMETER_UAV(FCombineCS, Output, Compute)
 
 void FCombineCS::Unbind(FRHICommandList& RHICmdList)
 {
-    const auto ComputeShaderRHI = GetComputeShader();
+    const TShaderMapRef<FCombineCS> ComputeShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+    auto* ComputeShaderRHI = ComputeShader.GetComputeShader();
 
     UNBIND_SRV(InputX, Compute);
     UNBIND_SRV(InputY, Compute);
@@ -27,14 +28,14 @@ void FCombineCS::Unbind(FRHICommandList& RHICmdList)
     UNBIND_UAV(Output, Compute);
 }
 
-bool FCombineCS::Serialize(FArchive& Ar)
-{
-    const auto bShaderHasOutdatedParameters = FGlobalShader::Serialize(Ar);
-
-    Ar << InputX << InputY << InputZ << InputW << Output;
-
-    return bShaderHasOutdatedParameters;
-}
+//bool FCombineCS::Serialize(FArchive& Ar)
+//{
+//    const auto bShaderHasOutdatedParameters = FGlobalShader::Serialize(Ar);
+//
+//    Ar << InputX << InputY << InputZ << InputW << Output;
+//
+//    return bShaderHasOutdatedParameters;
+//}
 
 IMPLEMENT_SHADER_TYPE(, FCombineCS, TEXT("/Plugin/ShadersPlus/Private/CombineCS.usf"), TEXT("MainCS"), SF_Compute);
 

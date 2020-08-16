@@ -1,3 +1,5 @@
+#include "/Engine/Public/Platform.ush"
+
 #ifndef INPUT_COMPONENTS
 #define INPUT_COMPONENTS 4
 #endif

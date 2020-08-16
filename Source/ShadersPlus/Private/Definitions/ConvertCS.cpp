@@ -12,20 +12,21 @@ IMPLEMENT_SET_PARAMETER_UAV(FConvertCS, Output, Compute)
 
 void FConvertCS::Unbind(FRHICommandList& RHICmdList)
 {
-    const auto ComputeShaderRHI = GetComputeShader();
+    const TShaderMapRef<FConvertCS> ComputeShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+    auto* ComputeShaderRHI = ComputeShader.GetComputeShader();
 
     UNBIND_SRV(Input, Compute);
     UNBIND_UAV(Output, Compute);
 }
 
-bool FConvertCS::Serialize(FArchive& Ar)
-{
-    const auto bShaderHasOutdatedParameters = FGlobalShader::Serialize(Ar);
-
-    Ar << Input << Output;
-
-    return bShaderHasOutdatedParameters;
-}
+//bool FConvertCS::Serialize(FArchive& Ar)
+//{
+//    const auto bShaderHasOutdatedParameters = FGlobalShader::Serialize(Ar);
+//
+//    Ar << Input << Output;
+//
+//    return bShaderHasOutdatedParameters;
+//}
 
 IMPLEMENT_SHADER_TYPE(, FConvertCS, TEXT("/Plugin/ShadersPlus/Private/ConvertCS.usf"), TEXT("MainCS"), SF_Compute);
 

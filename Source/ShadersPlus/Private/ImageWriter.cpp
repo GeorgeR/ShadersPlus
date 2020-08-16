@@ -31,7 +31,7 @@ void FImageWriter::TryWrite()
 
         AsyncTask(ENamedThreads::GameThread, [Task = MoveTemp(Task)]{
             const void* RawPtr = nullptr;
-            int32 SizeInBytes = 0;
+            int64 SizeInBytes = 0;
 
             if (Task.Data->GetRawData(RawPtr, SizeInBytes))
             {

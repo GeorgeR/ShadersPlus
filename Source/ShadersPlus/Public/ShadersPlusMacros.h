@@ -15,7 +15,8 @@
 
 #define _IMPLEMENT_SET_PARAMETER(DeclarationType, ParameterType, ParameterName, ShaderType, Setter) void DeclarationType::Set##ParameterName(FRHICommandList& RHICmdList, ParameterType Value)    \
 {   \
-    const auto ShaderType##ShaderRHI = Get##ShaderType##Shader();    \
+    const TShaderMapRef<##DeclarationType> ##ShaderType##Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));	\
+    auto* ShaderType##ShaderRHI = ##ShaderType##Shader.Get##ShaderType##Shader();	\
     if (this->##ParameterName.IsBound())    \
         RHICmdList.##Setter(ShaderType##ShaderRHI, this->##ParameterName.GetBaseIndex(), Value);     \
 }
